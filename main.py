@@ -2,7 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 
 state = "pressed"
-
+state = "pressed"
+state = "pressed"
+state = "pressed"
+state = "pressed"
 
 def btn_start_click():
     if state == "pressed":
