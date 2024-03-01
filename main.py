@@ -2,11 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 state = "pressed"
-state = "pressed"
-state = "pressed"
-state = "pressed"
-state = "pressed"
-
+bitchy
 def btn_start_click():
     if state == "pressed":
         for i in range(20 + cmb_lvl.current() * 3):
