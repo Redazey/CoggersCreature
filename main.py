@@ -6,9 +6,8 @@ win = tk.Tk()
 
 
 def update(e=None):
-    for i in range(win.winfo_screenwidth()):
-        tk.Frame(master=win, bg="black", width=1, height=40).place(x=i, y=50)
-        win.after(int(1000 / FPS))
+    # здесь будут делаться функции с FPS 10
+    win.after(int(1000 / FPS))
 
 
 FPS = 10
