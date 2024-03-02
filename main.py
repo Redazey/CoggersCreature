@@ -40,7 +40,7 @@ def update(e=None):
     win.after(int(1000 / FPS), update)
 
 
-FPS = 30
+FPS = 25
 
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
 canvas = tk.Canvas(win, bg='white', bd=0, highlightthickness=0)
