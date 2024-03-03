@@ -1,6 +1,7 @@
 import random
 import tkinter as tk
 import keyboard
+import time
 
 win = tk.Tk()
 
@@ -12,6 +13,10 @@ class Person:
 
         # инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
         self.pers = canvas.create_oval(self.x, self.y, self.x + 100, self.y + 100, fill='black')
+
+        # Все, что связано с действиями персонажа
+        self.action = None
+        self.action_count = 0
 
     # Эта функция нужна для того, что бы получать X нашего персонажа
     def getx(self):
@@ -27,19 +32,37 @@ class Person:
             self.x += 5
             canvas.coords(self.pers, self.x, self.y, self.x + 100, self.y + 100)
 
-        elif direction == "left" and self.x > win.winfo_screenwidth():
+        elif direction == "left" and self.x > 0:
             self.x -= 5
             canvas.coords(self.pers, self.x, self.y, self.x + 100, self.y + 100)
+
         else:
             return 'Direction can accept only "right"/"left" arguments'
 
 
-def update(e=None):
+def update():
     # Здесь будут происходить события с нашим персонажем
-    mox.move("right")
-    win.after(int(1000 / FPS), update)
+    if mox.action_count <= 0:
+        mox.action = random.choice(["moveRight", "moveLeft", "doNothing"])
+        mox.action_count = random.randint(50, 100)
+        win.after(1000 // FPS, update)
+    else:
+        match mox.action:
+            case "moveRight":
+                mox.move("right")
+                mox.action_count -= 3
+                win.after(1000 // FPS, update)
 
+            case "moveLeft":
+                mox.move("left")
+                mox.action_count -= 3
+                win.after(1000 // FPS, update)
 
+            case "doNothing":
+                mox.action_count -= 2
+                win.after(1000 // FPS, update)
+            case None:
+                print("Действие не выбрано.")
 FPS = 25
 
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
@@ -51,9 +74,10 @@ win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "white")
 
 # Создаем персонажа на определенных координатах
-mox = Person(1, win.winfo_screenheight() - 100)
+mox = Person(500, win.winfo_screenheight() - 100)
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
-    win.after(int(1000 / FPS), update)
+    win.after(1000 // FPS, update)
     win.mainloop()
+
