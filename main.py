@@ -63,8 +63,7 @@ def update():
                 mox.action_count -= 3
                 win.after(1000 // FPS, update)
 
-            case None:
-                print("Действие не выбрано.")
+
 FPS = 25
 
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
