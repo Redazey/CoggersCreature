@@ -1,7 +1,6 @@
 import random
 import tkinter as tk
-import keyboard
-import time
+from PIL import ImageTk, Image
 
 win = tk.Tk()
 
@@ -10,9 +9,13 @@ class Person:
     def __init__(self, start_x, start_y):
         self.x = start_x
         self.y = start_y
+        self.width = 100
+        self.height = 100
 
         # инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
-        self.pers = canvas.create_oval(self.x, self.y, self.x + 100, self.y + 100, fill='black')
+        self.mox_smoker = ImageTk.PhotoImage((Image.open('Z:/files/CoggersCreatures/imgs/mox_smoking.png')
+                                              .resize((self.width, self.height))))
+        self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.mox_smoker)
 
         # Все, что связано с действиями персонажа
         self.action = None 
@@ -22,7 +25,7 @@ class Person:
 
     # Она возвращает координаты нашего персонажа
     def get_cords(self):
-        return self.x, self.x + 100, self.y, self.y + 100
+        return self.x, self.x + self.width, self.y, self.y + self.height
 
     # Она возвращает скорость нашего персонажа по оси х и у
     def get_speed(self):
@@ -41,48 +44,49 @@ class Person:
 
         # перемещение по горизонтали
         if (direction == "horizontal" and
-                ((speed > 0 and self.x + 100 + speed <= max_x) or (speed < 0 and self.x + speed >= 1))):
+                ((speed > 0 and self.x + self.width + speed <= max_x) or (speed < 0 and self.x + speed >= 1))):
             self.x += speed
         # доводит положение персонажа до правого края, но не дает выйти за него
-        elif direction == "horizontal" and self.x + 100 + speed > max_x:
-            self.x = max_x - 100
+        elif direction == "horizontal" and self.x + self.width + speed > max_x:
+            self.x = max_x - self.width
         # то же самое что выше, но только с левым краем
         elif direction == "horizontal" and self.x + speed <= 1:
             self.x = 1
 
         # перемещение по вертикали
-        if direction == "vertical" and self.y + 100 + speed <= max_y:
+        self.y = self.y + self.height
+        if direction == "vertical" and self.y + self.height + speed <= max_y:
             self.y += speed
         # доводит положение персонажа до нижнего края, но не дает выйти за него, за верхний выходить можно
-        elif direction == "vertical" and self.y + 100 + speed > max_y:
-            self.y = max_y - 100
+        elif direction == "vertical" and self.y + self.height + speed > max_y:
+            self.y = max_y - self.height
 
         else:
             return 'Direction can accept only "right"/"left/vertical" arguments'
 
-        canvas.coords(self.pers, self.x, self.y, self.x + 100, self.y + 100)
+        canvas.coords(self.pers, self.x, self.y)
 
     # Функция инерции, постепенно увеличивает скорость, с которой падает наш персонаж, пока в воздухе,
     # А так же постепенно останавливает его движение по горизонтали, если тот в воздухе
     def inertia(self):
-        if self.y + 100 < max_y:
+        if self.y + self.height < max_y:
             self.impulse_y += y_gravity
 
         # если шлепается об землю, то импульс приравнивается нулю
-        elif self.y + 100 == max_y:
+        elif self.y + self.height == max_y:
             self.impulse_y = 0
 
         # снижение скорости при положительном импульсе (движение вправо)
-        if (self.impulse_x >= 0) and self.impulse_x - x_gravity >= 0 and self.y + 100 < max_y:
+        if (self.impulse_x >= 0) and self.impulse_x - x_gravity >= 0 and self.y + self.height < max_y:
             self.impulse_x -= x_gravity
 
         # снижение скорости при отрицательном импульсе (движение влево)
-        elif (self.impulse_x <= 0) and self.impulse_x + x_gravity <= 0 and self.y + 100 < max_y:
+        elif (self.impulse_x <= 0) and self.impulse_x + x_gravity <= 0 and self.y + self.height < max_y:
             self.impulse_x += x_gravity
 
         # если его импульс меньше, чем значение гравитации, то мы приравниваем его нулю, что бы персонаж
         # не полетел в обратную сторону
-        elif self.impulse_x - x_gravity < 0 and self.y + 100 < max_y:
+        elif self.impulse_x - x_gravity < 0 and self.y + self.height < max_y:
             self.impulse_x = 0
 
 
