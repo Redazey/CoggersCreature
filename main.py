@@ -15,7 +15,7 @@ class Person:
         self.pers = canvas.create_oval(self.x, self.y, self.x + 100, self.y + 100, fill='black')
 
         # Все, что связано с действиями персонажа
-        self.action = None
+        self.action = None 
         self.action_count = 0
 
     # Эта функция нужна для того, что бы получать X нашего персонажа
@@ -43,8 +43,13 @@ class Person:
 def update():
     # Здесь будут происходить события с нашим персонажем
     if mox.action_count <= 0:
-        mox.action = random.choice(["moveRight", "moveLeft", "doNothing"])
-        mox.action_count = random.randint(50, 100)
+        mox.action = random.choice(["moveRight", "moveLeft"])
+        mox.action_count = random.randint(100, 200)
+        win.after(1000 // FPS, update)
+
+    elif mox.action_count <= 100: # Делает так, чтобы персонаж стоял на месте между действиями.
+        mox.action = "doNothing"
+        mox.action_count -= 2
         win.after(1000 // FPS, update)
     else:
         match mox.action:
@@ -58,9 +63,6 @@ def update():
                 mox.action_count -= 3
                 win.after(1000 // FPS, update)
 
-            case "doNothing":
-                mox.action_count -= 2
-                win.after(1000 // FPS, update)
             case None:
                 print("Действие не выбрано.")
 FPS = 25
