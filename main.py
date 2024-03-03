@@ -9,8 +9,8 @@ class Person:
     def __init__(self, start_x, start_y):
         self.x = start_x
         self.y = start_y
-        self.width = 100
-        self.height = 100
+        self.width = 400
+        self.height = 400
 
         # инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
         self.mox_smoker = ImageTk.PhotoImage((Image.open('Z:/files/CoggersCreatures/imgs/mox_smoking.png')
@@ -98,7 +98,7 @@ def update():
     mox.inertia()
 
     # Здесь будут происходить события с нашим персонажем, если он стоит на земле
-    if y2 == max_y:
+    if y2 >= max_y:
         if mox.action_count <= 0:
             mox.action = random.choice(["moveRight", "moveLeft", "jumpRight", "jumpLeft"])
             mox.action_count = random.randint(250, 500)
@@ -135,7 +135,7 @@ def update():
 
 
 FPS = 25
-y_gravity = 3
+y_gravity = 2
 x_gravity = 0.2
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
