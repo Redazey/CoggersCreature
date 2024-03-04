@@ -1,7 +1,6 @@
 import random
 import tkinter as tk
 from PIL import ImageTk, Image
-
 win = tk.Tk()
 
 
@@ -12,17 +11,24 @@ class Person:
         self.width = 400
         self.height = 400
 
-        # инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
-        self.mox_smoker = ImageTk.PhotoImage((Image.open('Z:/files/CoggersCreatures/imgs/mox_smoking.png')
-                                              .resize((self.width, self.height))))
-        self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.mox_smoker)
+        # Задаем персонажу его спрайт по пути файла спрайта
+        # Инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
+        self.current_sprite = None
+        self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.current_sprite)
+        self.changeCurrentSprite(r"sprites\MoxStand.png")
 
         # Все, что связано с действиями персонажа
-        self.action = None 
+        self.action_list = [moveRight, moveLeft, jumpRight, jumpLeft] # Нужен для случайного выбора действия
+        self.Test_action_list = [moveRight]
+        self.action = None
         self.action_count = 0
         self.impulse_x = 0
         self.impulse_y = 0
 
+    # Создает объект картинки по строке пути картинки
+    def changeCurrentSprite(self, path):
+        self.current_sprite = ImageTk.PhotoImage((Image.open(path).resize((self.width, self.height))))
+        canvas.itemconfigure(self.pers, image=self.current_sprite)
     # Она возвращает координаты нашего персонажа
     def get_cords(self):
         return self.x, self.x + self.width, self.y, self.y + self.height
@@ -88,7 +94,28 @@ class Person:
         # не полетел в обратную сторону
         elif self.impulse_x - x_gravity < 0 and self.y + self.height < max_y:
             self.impulse_x = 0
-
+def beIdle():
+    mox.action = "doNothing"
+    mox.set_impulse(0, 0)
+    mox.action_count -= 2
+def moveRight():
+    mox.action = "moveRight"
+    mox.changeCurrentSprite("sprites/MoxRight.png")
+    mox.set_impulse(5, 0)
+    mox.action_count -= 4
+def moveLeft():
+    mox.action = "moveLeft"
+    mox.changeCurrentSprite("sprites/MoxLeft.png")
+    mox.set_impulse(-5, 0)
+    mox.action_count -= 4
+def jumpRight():
+    mox.action = "jumpRight"
+    mox.change_impulse(5, -25)
+    mox.action_count -= 25
+def jumpLeft():
+    mox.action = "jumpLeft"
+    mox.change_impulse(-5, -25)
+    mox.action_count -= 25
 
 def update():
     x_speed, y_speed = mox.get_speed()
@@ -100,42 +127,34 @@ def update():
     # Здесь будут происходить события с нашим персонажем, если он стоит на земле
     if y2 >= max_y:
         if mox.action_count <= 0:
-            mox.action = random.choice(["moveRight", "moveLeft", "jumpRight", "jumpLeft"])
-            mox.action_count = random.randint(250, 500)
+            random.choice(mox.action_list)()
+            mox.action_count = random.randint(300, 500)
             win.after(1000 // FPS, update)
 
         # Делает так, чтобы персонаж стоял на месте между действиями.
-        elif mox.action_count <= 250:
-            mox.action = "doNothing"
-            mox.set_impulse(0, 0)
-            mox.action_count -= 2
+        elif mox.action_count <= 200:
+            beIdle()
             win.after(1000 // FPS, update)
         else:
             match mox.action:
                 case "moveRight":
-                    mox.set_impulse(5, 0)
-                    mox.action_count -= 3
+                    moveRight()
                     win.after(1000 // FPS, update)
-
                 case "moveLeft":
-                    mox.set_impulse(-5, 0)
-                    mox.action_count -= 3
+                    moveLeft()
                     win.after(1000 // FPS, update)
-
                 case "jumpRight":
-                    mox.change_impulse(5, -25)
-                    mox.action_count -= 25
+                    jumpRight()
                     win.after(1000 // FPS, update)
                 case "jumpLeft":
-                    mox.change_impulse(-5, -25)
-                    mox.action_count -= 25
+                    jumpLeft()
                     win.after(1000 // FPS, update)
     else:
         win.after(1000 // FPS, update)
 
 
 FPS = 25
-y_gravity = 2
+y_gravity = 1
 x_gravity = 0.2
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
