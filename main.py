@@ -127,7 +127,6 @@ class Person:
 
 
 def update():
-
     mox.move("vertical", mox.impulse_y)
     mox.move("horizontal", mox.impulse_x)
     mox.inertia()
@@ -196,6 +195,7 @@ idle = PersAction(0, 0, 5, (
 
 # Суем наши действия в сам объект mox
 mox.action_list = (move_right, move_left, jump_right, jump_left)
+mox.action = idle
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
