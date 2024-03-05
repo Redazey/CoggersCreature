@@ -14,11 +14,11 @@ class Sprite:
         self.current_duration = 0
 
     # Обновляет длительность этого кадра
-    def update(self):
+    def sprite_update(self):
         self.current_duration -= 1
 
     # Стартует длительность этого кадра
-    def start(self):
+    def sprite_start(self):
         self.current_duration = self.max_duration
 
 
@@ -33,11 +33,11 @@ class PersAction:
         self.current_duration = 0
         self.sprites = sprites
         self.current_sprite = sprites[0]
-        self.current_sprite.start()
+        self.current_sprite.sprite_start()
 
-    def update(self):
+    def act_update(self):
         if self.current_sprite.current_duration > 0:
-            self.current_sprite.update()
+            self.current_sprite.sprite_update()
         else:
             for sprite in self.sprites:
                 if sprite.current_duration > 0:
@@ -45,17 +45,17 @@ class PersAction:
         self.current_duration -= 1
         return self.current_sprite.sprite
 
-    def start(self):
+    def act_start(self):
         self.current_duration = self.max_duration
         return self.impulse_x, self.impulse_y, self.current_sprite
 
 
 class Person:
-    def __init__(self, start_x, start_y, action_list: tuple):
+    def __init__(self, start_x, start_y, width, height, action_list: tuple):
         self.x = start_x
         self.y = start_y
-        self.width = 200
-        self.height = 200
+        self.width = width
+        self.height = height
         """
         Задаем персонажу его спрайт по пути файла спрайта
         инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
@@ -137,10 +137,10 @@ def update():
         # Если действие для персонажа еще не задано, или оно закончилось, то задаем новое
         if mox.action is None or mox.action.current_duration == 0:
             mox.action = random.choice(mox.action_list)
-            mox.impulse_x, mox.impulse_y, mox.current_sprite = mox.action.start()
+            mox.impulse_x, mox.impulse_y, mox.current_sprite = mox.action.act_start()
             win.after(1000 // FPS, update)
         else:
-            mox.current_sprite = mox.action.update()
+            mox.current_sprite = mox.action.act_update()
             win.after(1000 // FPS, update)
     else:
         win.after(1000 // FPS, update)
@@ -161,40 +161,41 @@ win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "white")
 
 # Инициализируем объект mox из класса Person, с начальными координатами и набором действий
-mox = Person(500, 0, ())
+pers_width = 200
+pers_height = 200
 # набор стандартных движений
 move_right = PersAction(5, 0, 3, (
-        Sprite("sprites/MoxRight_1.jpg", 1, mox.width, mox.height),
-        Sprite("sprites/MoxRight_2.jpg", 1, mox.width, mox.height)
+        Sprite("sprites/MoxRight_1.jpg", 1, pers_width, pers_height),
+        Sprite("sprites/MoxRight_2.jpg", 1, pers_width, pers_height)
     )
 )
 
 move_left = PersAction(-5, 0, 3, (
-        Sprite("sprites/MoxLeft.png", 1, mox.width, mox.height),
-        Sprite("sprites/MoxLeft.png", 1, mox.width, mox.height)
+        Sprite("sprites/MoxLeft.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxLeft.png", 1, pers_width, pers_height)
     )
 )
 
 jump_right = PersAction(5, -15, 1, (
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height),
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height)
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
     )
 )
 
 jump_left = PersAction(-5, -15, 1, (
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height),
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height)
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
     )
 )
 
 idle = PersAction(0, 0, 5, (
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height),
-        Sprite("sprites/MoxStand.png", 1, mox.width, mox.height)
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
     )
 )
 
 # Суем наши действия в сам объект mox
-mox.action_list = (move_right, move_left, jump_right, jump_left)
+mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
 mox.action = idle
 
 # Зацикливаем нашу программу с фиксированным FPS
