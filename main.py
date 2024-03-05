@@ -146,7 +146,7 @@ def update():
         if mox.action is None or mox.action.current_duration == 0:
             # Эта проверка делает так, что бы персонаж стоял, между действиями
             if mox.action == idle:
-                mox.action = move_right
+                mox.action = random.choice(mox.action_list)
             else:
                 mox.action = idle
             mox.impulse_x, mox.impulse_y = mox.action.act_start(mox)
