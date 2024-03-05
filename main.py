@@ -4,52 +4,6 @@ from PIL import ImageTk, Image
 win = tk.Tk()
 
 
-class Sprite:
-    def __init__(self, path: str, duration, width, height):
-        self.sprite = ImageTk.PhotoImage(Image.open(path).resize((width, height)))
-        # Длительность расчитывается по формуле "длительность в секундах / (1 секунда / FPS)",
-        # итого получаем длительность в кадрах
-        # i.e. 5sec / (1sec / 25FPS) = 125 frames
-        self.max_duration = duration / (1 / FPS)
-        self.current_duration = 0
-
-    # Обновляет длительность этого кадра
-    def sprite_update(self):
-        self.current_duration -= 1
-
-    # Стартует длительность этого кадра
-    def sprite_start(self):
-        self.current_duration = self.max_duration
-
-
-# Класс для создания каких либо действий персонажа. P.s. Sprites это неизменяемый массив, а значит минимальное кол-во
-# спрайтов должно быть хотя бы 2, если действие использует лишь один спрайт, то дублируйте его.
-class PersAction:
-    # длительность в секундах если что
-    def __init__(self, impulse_x, impulse_y, duration, sprites: tuple):
-        self.impulse_x = impulse_x
-        self.impulse_y = impulse_y
-        self.max_duration = duration / (1 / FPS)
-        self.current_duration = 0
-        self.sprites = sprites
-        self.current_sprite = sprites[0]
-        self.current_sprite.sprite_start()
-
-    def act_update(self):
-        if self.current_sprite.current_duration > 0:
-            self.current_sprite.sprite_update()
-        else:
-            for sprite in self.sprites:
-                if sprite.current_duration > 0:
-                    self.current_sprite = sprite
-        self.current_duration -= 1
-        return self.current_sprite.sprite
-
-    def act_start(self):
-        self.current_duration = self.max_duration
-        return self.impulse_x, self.impulse_y, self.current_sprite
-
-
 class Person:
     def __init__(self, start_x, start_y, width, height, action_list: tuple):
         self.x = start_x
@@ -126,6 +80,60 @@ class Person:
             self.impulse_x = 0
 
 
+class Sprite:
+    def __init__(self, path: str, duration, width, height):
+        self.sprite = ImageTk.PhotoImage(Image.open(path).resize((width, height)))
+        # Длительность расчитывается по формуле "длительность в секундах * FPS",
+        # итого получаем длительность в кадрах
+        # i.e. 5sec * 25FPS = 125 frames
+        self.max_duration = duration * FPS
+        self.current_duration = 0
+
+    # Обновляет длительность этого кадра
+    def sprite_update(self):
+        self.current_duration -= 1
+
+    # Стартует длительность этого кадра
+    def sprite_start(self):
+        self.current_duration = self.max_duration
+
+
+# Класс для создания каких либо действий персонажа. P.s. Sprites это неизменяемый массив, а значит минимальное кол-во
+# спрайтов должно быть хотя бы 2, если действие использует лишь один спрайт, то дублируйте его.
+class PersAction:
+    # длительность в секундах если что
+    def __init__(self, impulse_x, impulse_y, duration, sprites: tuple):
+        self.impulse_x = impulse_x
+        self.impulse_y = impulse_y
+        self.max_duration = duration * FPS
+        self.current_duration = 0
+        self.sprites = sprites
+        self.sprite_num = 0
+        self.current_sprite = sprites[self.sprite_num]
+        self.current_sprite.sprite_start()
+
+    # Обновляет длительность действия, а так же меняет текущую анимацию, на следующую
+    def act_update(self, pers):
+        # Меняет спрайт на следующий по списку, если тот не последний, в случае если последний,
+        # возвращается к первому
+        if self.current_sprite.current_duration > 0:
+            self.current_sprite.sprite_update()
+        else:
+            if self.sprite_num < len(self.sprites) - 1:
+                self.sprite_num += 1
+            else:
+                self.sprite_num = 0
+            self.sprites[self.sprite_num].sprite_start()
+            self.current_sprite = self.sprites[self.sprite_num]
+        self.current_duration -= 1
+        canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
+
+    def act_start(self, pers):
+        self.current_duration = self.max_duration
+        canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
+        return self.impulse_x, self.impulse_y
+
+
 def update():
     mox.move("vertical", mox.impulse_y)
     mox.move("horizontal", mox.impulse_x)
@@ -136,22 +144,25 @@ def update():
     if y2 >= max_y:
         # Если действие для персонажа еще не задано, или оно закончилось, то задаем новое
         if mox.action is None or mox.action.current_duration == 0:
-            mox.action = random.choice(mox.action_list)
-            mox.impulse_x, mox.impulse_y, mox.current_sprite = mox.action.act_start()
+            # Эта проверка делает так, что бы персонаж стоял, между действиями
+            if mox.action == idle:
+                mox.action = move_right
+            else:
+                mox.action = idle
+            mox.impulse_x, mox.impulse_y = mox.action.act_start(mox)
             win.after(1000 // FPS, update)
         else:
-            mox.current_sprite = mox.action.act_update()
+            mox.current_sprite = mox.action.act_update(mox)
             win.after(1000 // FPS, update)
     else:
         win.after(1000 // FPS, update)
 
 
-FPS = 25
+FPS = 30
 y_gravity = 1
 x_gravity = 0.2
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
-
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
 canvas = tk.Canvas(win, bg='white', bd=0, highlightthickness=0)
 canvas.place(x=0, y=0, width=max_x, height=max_y)
@@ -165,8 +176,8 @@ pers_width = 200
 pers_height = 200
 # набор стандартных движений
 move_right = PersAction(5, 0, 3, (
-        Sprite("sprites/MoxRight_1.jpg", 1, pers_width, pers_height),
-        Sprite("sprites/MoxRight_2.jpg", 1, pers_width, pers_height)
+        Sprite("sprites/MoxRight_1.jpg", 0.5, pers_width, pers_height),
+        Sprite("sprites/MoxRight_2.jpg", 0.5, pers_width, pers_height)
     )
 )
 
@@ -197,6 +208,7 @@ idle = PersAction(0, 0, 5, (
 # Суем наши действия в сам объект mox
 mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
 mox.action = idle
+mox.action.act_start(mox)
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
