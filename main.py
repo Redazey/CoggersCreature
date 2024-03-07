@@ -56,6 +56,26 @@ class Person:
 
         canvas.coords(self.pers, self.x, self.y)
 
+    # Изменение спрайта в воздухе, в зависимости от значений импульса
+    def fly(self):
+        # Прыжки вправо
+        if self.impulse_x > 0:
+            if self.impulse_y < 0:
+                self.current_sprite = Sprite("sprites/MoxRJump_2.png", 0, self.width, self.height)
+            else:
+                self.current_sprite = Sprite("sprites/MoxRJump_3.png", 0, self.width, self.height)
+        # Прыжки без движения по оси Х
+        elif self.impulse_x == 0:
+            if self.impulse_y < 0:
+                self.current_sprite = Sprite("sprites/MoxJump_1.png", 0, self.width, self.height)
+            else:
+                self.current_sprite = Sprite("sprites/MoxJump_2.png", 0, self.width, self.height)
+        # Прыжки влево
+        else:
+            self.current_sprite = Sprite("sprites/MoxLJump_2.png", 0, self.width, self.height)
+
+        canvas.itemconfigure(self.pers, image=self.current_sprite.sprite)
+
     # Функция инерции, постепенно увеличивает скорость, с которой падает наш персонаж, пока в воздухе,
     # А так же постепенно останавливает его движение по горизонтали, если тот в воздухе
     def inertia(self):
@@ -102,11 +122,19 @@ class Sprite:
 # спрайтов должно быть хотя бы 2, если действие использует лишь один спрайт, то дублируйте его.
 class PersAction:
     # длительность в секундах если что
-    def __init__(self, impulse_x, impulse_y, duration, sprites: tuple):
+    def __init__(self, impulse_x, impulse_y, duration, delay, sprites: tuple):
         self.impulse_x = impulse_x
         self.impulse_y = impulse_y
-        self.max_duration = duration * FPS
+        self.max_delay = delay * FPS
+        self.current_delay = self.max_delay
+
+        # not_repeatable это значение для действий, которые не должны повторяться больше одного раза (прыжки)
+        if duration == "not_repeatable":
+            self.max_duration = self.max_delay + 1
+        else:
+            self.max_duration = duration * FPS
         self.current_duration = 0
+
         self.sprites = sprites
         self.sprite_num = 0
         self.current_sprite = sprites[self.sprite_num]
@@ -114,24 +142,32 @@ class PersAction:
 
     # Обновляет длительность действия, а так же меняет текущую анимацию, на следующую
     def act_update(self, pers):
-        # Меняет спрайт на следующий по списку, если тот не последний, в случае если последний,
-        # возвращается к первому
-        if self.current_sprite.current_duration > 0:
-            self.current_sprite.sprite_update()
-        else:
-            if self.sprite_num < len(self.sprites) - 1:
-                self.sprite_num += 1
+        if self.current_delay == 0:
+            # Меняет спрайт на следующий по списку, если тот не последний, в случае если последний,
+            # возвращается к первому
+            if self.current_sprite.current_duration > 0:
+                self.current_sprite.sprite_update()
             else:
-                self.sprite_num = 0
-            self.sprites[self.sprite_num].sprite_start()
-            self.current_sprite = self.sprites[self.sprite_num]
+                if self.sprite_num < len(self.sprites) - 1:
+                    self.sprite_num += 1
+                else:
+                    self.sprite_num = 0
+
+                self.sprites[self.sprite_num].sprite_start()
+                self.current_sprite = self.sprites[self.sprite_num]
+
+            canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
+            pers.impulse_x = self.impulse_x
+            pers.impulse_y = self.impulse_y
+        else:
+            self.current_delay -= 1
+
         self.current_duration -= 1
-        canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
 
     def act_start(self, pers):
+        self.current_delay = self.max_delay
         self.current_duration = self.max_duration
         canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
-        return self.impulse_x, self.impulse_y
 
 
 def update():
@@ -149,16 +185,17 @@ def update():
                 mox.action = random.choice(mox.action_list)
             else:
                 mox.action = idle
-            mox.impulse_x, mox.impulse_y = mox.action.act_start(mox)
+            mox.action.act_start(mox)
             win.after(1000 // FPS, update)
         else:
-            mox.current_sprite = mox.action.act_update(mox)
+            mox.action.act_update(mox)
             win.after(1000 // FPS, update)
     else:
+        mox.fly()
         win.after(1000 // FPS, update)
 
 
-FPS = 30
+FPS = 25
 y_gravity = 1
 x_gravity = 0.2
 max_x = win.winfo_screenwidth()
@@ -172,34 +209,36 @@ win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "gray")
 
 # Инициализируем объект mox из класса Person, с начальными координатами и набором действий
-pers_width = 500
-pers_height = 500
-# набор стандартных движений
-move_right = PersAction(5, 0, 3, (
+pers_width = 200
+pers_height = 200
+# Набор стандартных движений
+# Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
+# P.s. delay должен быть всегда меньше, чем общая длительность действия
+move_right = PersAction(5, 0, 3, 0, (
         Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
         Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
     )
 )
 
-move_left = PersAction(-5, 0, 3, (
+move_left = PersAction(-5, 0, 3, 0, (
         Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
         Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
     )
 )
 
-jump_right = PersAction(5, -15, 1, (
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+jump_right = PersAction(7, -17, "not_repeatable", 1, (
+        Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
-jump_left = PersAction(-5, -15, 1, (
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+jump_left = PersAction(-7, -17, "not_repeatable", 1, (
+        Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
-idle = PersAction(0, 0, 5, (
+idle = PersAction(0, 0, 5, 0, (
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
