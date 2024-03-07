@@ -164,44 +164,44 @@ x_gravity = 0.2
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
-canvas = tk.Canvas(win, bg='white', bd=0, highlightthickness=0)
+canvas = tk.Canvas(win, bg='gray', bd=0, highlightthickness=0)
 canvas.place(x=0, y=0, width=max_x, height=max_y)
 win.overrideredirect(True)
 win.state('zoomed')
 win.wm_attributes("-topmost", True)
-win.wm_attributes("-transparentcolor", "white")
+win.wm_attributes("-transparentcolor", "gray")
 
 # Инициализируем объект mox из класса Person, с начальными координатами и набором действий
 pers_width = 200
 pers_height = 200
 # набор стандартных движений
 move_right = PersAction(5, 0, 3, (
-        Sprite("sprites/MoxRight_1.jpg", 0.5, pers_width, pers_height),
-        Sprite("sprites/MoxRight_2.jpg", 0.5, pers_width, pers_height)
+        Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
+        Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
     )
 )
 
 move_left = PersAction(-5, 0, 3, (
-        Sprite("sprites/MoxLeft.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxLeft.png", 1, pers_width, pers_height)
+        Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
+        Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
     )
 )
 
 jump_right = PersAction(5, -15, 1, (
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
 jump_left = PersAction(-5, -15, 1, (
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
 idle = PersAction(0, 0, 5, (
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
