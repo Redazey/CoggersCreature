@@ -155,6 +155,7 @@ def update():
             mox.current_sprite = mox.action.act_update(mox)
             win.after(1000 // FPS, update)
     else:
+        mox.current_sprite = mox.action.act_update(mox)
         win.after(1000 // FPS, update)
 
 
@@ -188,7 +189,7 @@ move_left = PersAction(-5, 0, 3, (
 )
 
 jump_right = PersAction(5, -15, 1, (
-        Sprite("sprites/MoxStand.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxJump_1.png", 0.3, pers_width, pers_height),
         Sprite("sprites/MoxStand.png", 1, pers_width, pers_height)
     )
 )
@@ -206,7 +207,7 @@ idle = PersAction(0, 0, 5, (
 )
 
 # Суем наши действия в сам объект mox
-mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
+mox = Person(500, 0, pers_width, pers_height, (jump_right, jump_left))
 mox.action = idle
 mox.action.act_start(mox)
 
