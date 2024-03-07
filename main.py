@@ -197,8 +197,10 @@ def update():
             # Эта проверка делает так, что бы персонаж стоял, между действиями
             if mox.action == idle:
                 mox.action = random.choice(mox.action_list)
-            elif x1 + mox.width >= max_x:
+            elif x2 >= max_x:
                 mox.action = move_left
+            elif x1 - (x2-x1) <= 0:
+                mox.action = move_right
             else:
                 mox.action = idle
             mox.action.act_start(mox)
@@ -261,9 +263,7 @@ idle = PersAction(0, 0, 3, 0, (
 )
 
 # Суем наши действия в сам объект mox
-mox = Person(600, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
-
-
+mox = Person(0, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
