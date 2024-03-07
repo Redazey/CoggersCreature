@@ -23,7 +23,7 @@ class Sprite:
 
 
 class Person:
-    def __init__(self, start_x, start_y, width, height, action_list: tuple):
+    def __init__(self, start_x,  start_y, width, height, action_list: tuple):
         # Все, что касается размеров и положения персонажа
         self.x = start_x
         self.y = start_y
@@ -197,6 +197,8 @@ def update():
             # Эта проверка делает так, что бы персонаж стоял, между действиями
             if mox.action == idle:
                 mox.action = random.choice(mox.action_list)
+            elif x1 + mox.width >= max_x:
+                mox.action = move_left
             else:
                 mox.action = idle
             mox.action.act_start(mox)
@@ -252,14 +254,16 @@ jump_left = PersAction(-7, -17, "not_repeatable", 1, (
     )
 )
 
-idle = PersAction(0, 0, 5, 0, (
+idle = PersAction(0, 0, 3, 0, (
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
 
 # Суем наши действия в сам объект mox
-mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
+mox = Person(600, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
+
+
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
