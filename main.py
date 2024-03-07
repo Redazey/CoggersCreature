@@ -4,18 +4,46 @@ from PIL import ImageTk, Image
 win = tk.Tk()
 
 
+class Sprite:
+    def __init__(self, path: str, duration, width, height):
+        self.sprite = ImageTk.PhotoImage(Image.open(path).resize((width, height)))
+        # Длительность расчитывается по формуле "длительность в секундах * FPS",
+        # итого получаем длительность в кадрах
+        # i.e. 5sec * 25FPS = 125 frames
+        self.max_duration = duration * FPS
+        self.current_duration = 0
+
+    # Обновляет длительность этого кадра
+    def sprite_update(self):
+        self.current_duration -= 1
+
+    # Стартует длительность этого кадра
+    def sprite_start(self):
+        self.current_duration = self.max_duration
+
+
 class Person:
     def __init__(self, start_x, start_y, width, height, action_list: tuple):
+        # Все, что касается размеров и положения персонажа
         self.x = start_x
         self.y = start_y
         self.width = width
         self.height = height
-        """
-        Задаем персонажу его спрайт по пути файла спрайта
-        инициализируем нашего персонажа на начальных координатах, данных при инициализации класса
-        """
-        self.current_sprite = None
-        self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.current_sprite)
+
+        # Все, что касается отображения персонажа на экране
+        self.default_sprite = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+        self.current_sprite = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+        self.right_flying_sprites = (
+            Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
+            Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
+        )
+        self.left_flying_sprites = (
+            Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
+            Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
+        )
+        self.cur_sprites = None
+        self.sprite_num = 0
+        self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.current_sprite.sprite)
 
         # Все, что связано с действиями персонажа
         # массив нужен для случайного выбора действия
@@ -58,23 +86,27 @@ class Person:
 
     # Изменение спрайта в воздухе, в зависимости от значений импульса
     def fly(self):
-        # Прыжки вправо
         if self.impulse_x > 0:
-            if self.impulse_y < 0:
-                self.current_sprite = Sprite("sprites/MoxRJump_2.png", 0, self.width, self.height)
-            else:
-                self.current_sprite = Sprite("sprites/MoxRJump_3.png", 0, self.width, self.height)
-        # Прыжки без движения по оси Х
-        elif self.impulse_x == 0:
-            if self.impulse_y < 0:
-                self.current_sprite = Sprite("sprites/MoxJump_1.png", 0, self.width, self.height)
-            else:
-                self.current_sprite = Sprite("sprites/MoxJump_2.png", 0, self.width, self.height)
-        # Прыжки влево
+            self.cur_sprites = self.right_flying_sprites
+        elif self.impulse_x < 0:
+            self.cur_sprites = self.left_flying_sprites
         else:
-            self.current_sprite = Sprite("sprites/MoxLJump_2.png", 0, self.width, self.height)
-
-        canvas.itemconfigure(self.pers, image=self.current_sprite.sprite)
+            canvas.itemconfigure(self.pers, image=self.current_sprite.sprite)
+            return
+        if self.current_sprite.current_duration > 0:
+            self.current_sprite.sprite_update()
+        else:
+            if self.sprite_num < len(self.cur_sprites) - 1:
+                self.sprite_num += 1
+            else:
+                self.sprite_num = 0
+            if self.sprite_num == 0:
+                self.cur_sprites[self.sprite_num].max_duration = abs(self.impulse_y) // y_gravity
+            else:
+                self.cur_sprites[self.sprite_num].max_duration = self.cur_sprites[self.sprite_num - 1].max_duration
+            self.cur_sprites[self.sprite_num].sprite_start()
+            self.current_sprite = self.cur_sprites[self.sprite_num]
+            canvas.itemconfigure(self.pers, image=self.current_sprite.sprite)
 
     # Функция инерции, постепенно увеличивает скорость, с которой падает наш персонаж, пока в воздухе,
     # А так же постепенно останавливает его движение по горизонтали, если тот в воздухе
@@ -98,24 +130,6 @@ class Person:
         # не полетел в обратную сторону
         elif self.impulse_x - x_gravity < 0 and self.y + self.height < max_y:
             self.impulse_x = 0
-
-
-class Sprite:
-    def __init__(self, path: str, duration, width, height):
-        self.sprite = ImageTk.PhotoImage(Image.open(path).resize((width, height)))
-        # Длительность расчитывается по формуле "длительность в секундах * FPS",
-        # итого получаем длительность в кадрах
-        # i.e. 5sec * 25FPS = 125 frames
-        self.max_duration = duration * FPS
-        self.current_duration = 0
-
-    # Обновляет длительность этого кадра
-    def sprite_update(self):
-        self.current_duration -= 1
-
-    # Стартует длительность этого кадра
-    def sprite_start(self):
-        self.current_duration = self.max_duration
 
 
 # Класс для создания каких либо действий персонажа. P.s. Sprites это неизменяемый массив, а значит минимальное кол-во
@@ -246,8 +260,6 @@ idle = PersAction(0, 0, 5, 0, (
 
 # Суем наши действия в сам объект mox
 mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
-mox.action = idle
-mox.action.act_start(mox)
 
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
