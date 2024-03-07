@@ -172,8 +172,8 @@ win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "gray")
 
 # Инициализируем объект mox из класса Person, с начальными координатами и набором действий
-pers_width = 200
-pers_height = 200
+pers_width = 500
+pers_height = 500
 # набор стандартных движений
 move_right = PersAction(5, 0, 3, (
         Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
