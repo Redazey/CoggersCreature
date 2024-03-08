@@ -4,6 +4,7 @@ from PIL import ImageTk, Image
 win = tk.Tk()
 
 
+# Класс для спрайтов, по сути делает объект Sprite, имеющий все нужные свойства для создания анимаций
 class Sprite:
     def __init__(self, path: str, duration, width, height):
         self.sprite = ImageTk.PhotoImage(Image.open(path).resize((width, height)))
@@ -22,8 +23,10 @@ class Sprite:
         self.current_duration = self.max_duration
 
 
+# Класс, характеризующий нашего персонажа
 class Person:
-    def __init__(self, start_x, start_y, width, height, action_list: tuple):
+    def __init__(self, start_x, start_y, width, height,
+                 action_list: tuple, default_fly, r_fly, l_fly):
         # Все, что касается размеров и положения персонажа
         self.x = start_x
         self.y = start_y
@@ -31,16 +34,9 @@ class Person:
         self.height = height
 
         # Все, что касается отображения персонажа на экране
-        self.default_sprite = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
-        self.current_sprite = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
-        self.right_flying_sprites = (
-            Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
-            Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
-        )
-        self.left_flying_sprites = (
-            Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
-            Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
-        )
+        self.current_sprite = default_fly
+        self.r_fly = r_fly
+        self.l_fly = l_fly
         self.cur_sprites = None
         self.sprite_num = 0
         self.pers = canvas.create_image(self.x, self.y, anchor='nw', image=self.current_sprite.sprite)
@@ -87,9 +83,9 @@ class Person:
     # Изменение спрайта в воздухе, в зависимости от значений импульса
     def fly(self):
         if self.impulse_x > 0:
-            self.cur_sprites = self.right_flying_sprites
+            self.cur_sprites = self.r_fly
         elif self.impulse_x < 0:
-            self.cur_sprites = self.left_flying_sprites
+            self.cur_sprites = self.l_fly
         else:
             canvas.itemconfigure(self.pers, image=self.current_sprite.sprite)
             return
@@ -178,12 +174,14 @@ class PersAction:
 
         self.current_duration -= 1
 
+    # Стартует длительность этого действия
     def act_start(self, pers):
         self.current_delay = self.max_delay
         self.current_duration = self.max_duration
         canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
 
 
+# Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
 def update():
     mox.move("vertical", mox.impulse_y)
     mox.move("horizontal", mox.impulse_x)
@@ -209,9 +207,10 @@ def update():
         win.after(1000 // FPS, update)
 
 
+# Объявляем константы
 FPS = 25
 y_gravity = 1
-x_gravity = 0.2
+x_gravity = 0.1
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
@@ -257,10 +256,21 @@ idle = PersAction(0, 0, 5, 0, (
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
     )
 )
-
-# Суем наши действия в сам объект mox
-mox = Person(500, 0, pers_width, pers_height, (move_right, move_left, jump_right, jump_left))
-
+# список анимаций для полета влево и вправо
+mox_r_fly = (
+    Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
+    Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
+)
+mox_l_fly = (
+    Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
+    Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
+)
+# Собираем все вместе и инициализируем нашего персонажа
+mox = Person(
+    500, 0, pers_width, pers_height,
+    (move_right, move_left, jump_right, jump_left),
+    Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height), mox_r_fly, mox_l_fly
+)
 # Зацикливаем нашу программу с фиксированным FPS
 if __name__ == '__main__':
     win.after(1000 // FPS, update)
