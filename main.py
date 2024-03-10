@@ -406,11 +406,11 @@ for action in js_acts:
 defaultFalling = Sprite(pers_const["defaultFalling"], 0, js_width, js_height)
 
 js_l_fly = []
-for path in pers_const["lFly"].values():
-    js_l_fly.append(Sprite(path, 0, js_width, js_height))
+for js_path in pers_const["lFly"].values():
+    js_l_fly.append(Sprite(js_path, 0, js_width, js_height))
 js_r_fly = []
-for path in pers_const["rFly"].values():
-    js_r_fly.append(Sprite(path, 0, js_width, js_height))
+for js_path in pers_const["rFly"].values():
+    js_r_fly.append(Sprite(js_path, 0, js_width, js_height))
 
 person = Person(500, 0, js_width, js_height, actions, defaultFalling, js_r_fly, js_l_fly)
 
