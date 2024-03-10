@@ -1,5 +1,7 @@
 import random
 import tkinter as tk
+import json
+import os.path
 from PIL import ImageTk, Image
 win = tk.Tk()
 
@@ -25,8 +27,7 @@ class Sprite:
 
 # Класс, характеризующий нашего персонажа
 class Person:
-    def __init__(self, start_x, start_y, width, height,
-                 action_list: tuple, default_fly, r_fly, l_fly):
+    def __init__(self, start_x, start_y, width, height, action_list, default_fly, r_fly, l_fly):
         # Все, что касается размеров и положения персонажа
         self.x = start_x
         self.y = start_y
@@ -132,7 +133,7 @@ class Person:
 # спрайтов должно быть хотя бы 2, если действие использует лишь один спрайт, то дублируйте его.
 class PersAction:
     # длительность в секундах если что
-    def __init__(self, impulse_x, impulse_y, duration, delay, sprites: tuple):
+    def __init__(self, impulse_x, impulse_y, duration, delay, sprites):
         self.impulse_x = impulse_x
         self.impulse_y = impulse_y
         self.max_delay = delay * FPS
@@ -183,34 +184,30 @@ class PersAction:
 
 # Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
 def update():
-    mox.move("vertical", mox.impulse_y)
-    mox.move("horizontal", mox.impulse_x)
-    mox.inertia()
-    x1, x2, y1, y2 = mox.get_cords()
+    person.move("vertical", person.impulse_y)
+    person.move("horizontal", person.impulse_x)
+    person.inertia()
+    x1, x2, y1, y2 = person.get_cords()
 
     # Здесь будут происходить события с нашим персонажем, если он стоит на земле
     if y2 >= max_y:
         # Если действие для персонажа еще не задано, или оно закончилось, то задаем новое
-        if mox.action is None or mox.action.current_duration == 0:
+        if person.action is None or person.action.current_duration == 0:
             # Эта проверка делает так, что бы персонаж стоял, между действиями
-            if mox.action == idle:
-                mox.action = random.choice(mox.action_list)
+            if person.action == idle:
+                person.action = random.choice(person.action_list)
             else:
-                mox.action = idle
-            mox.action.act_start(mox)
+                person.action = idle
+            person.action.act_start(person)
             win.after(1000 // FPS, update)
         else:
-            mox.action.act_update(mox)
+            person.action.act_update(person)
             win.after(1000 // FPS, update)
     else:
-        mox.fly()
+        person.fly()
         win.after(1000 // FPS, update)
 
 
-# Объявляем константы
-FPS = 25
-y_gravity = 1
-x_gravity = 0.1
 max_x = win.winfo_screenwidth()
 max_y = win.winfo_screenheight()
 # Создаем Canvas, на котором будет перемещаться персонаж и заливаем его прозрачным цветом
@@ -221,57 +218,202 @@ win.state('zoomed')
 win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "gray")
 
-# Инициализируем объект mox из класса Person, с начальными координатами и набором действий
-pers_width = 200
-pers_height = 200
-# Набор стандартных движений
-# Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
-# P.s. delay должен быть всегда меньше, чем общая длительность действия
-move_right = PersAction(5, 0, 3, 0, (
-        Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
-        Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
+if not os.path.exists("settings.json"):
+    # Объявляем константы и записываем их в файл, если он еще не создан
+    pers_width = 200
+    pers_height = 200
+    FPS = 25
+    y_gravity = 1
+    x_gravity = 0.1
+    # Набор стандартных движений
+    # Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
+    # P.s. delay должен быть всегда меньше, чем общая длительность действия
+    move_right = PersAction(5, 0, 3, 0, [
+            Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
+            Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
+        ]
     )
+
+    move_left = PersAction(-5, 0, 3, 0, [
+            Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
+            Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
+        ]
+    )
+
+    jump_right = PersAction(7, -17, "not_repeatable", 1, [
+            Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
+            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+        ]
+    )
+
+    jump_left = PersAction(-7, -17, "not_repeatable", 1, [
+            Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
+            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+        ]
+    )
+
+    idle = PersAction(0, 0, 5, 0, [
+            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+        ]
+    )
+
+    # список анимаций для полета влево и вправо
+    default_falling = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+
+    pers_r_fly = (
+        Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
+        Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
+    )
+    pers_l_fly = (
+        Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
+        Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
+    )
+
+    f = open("settings.json", mode="w")
+    const = {
+        "general": {
+            "FPS": FPS,
+            "yGravity": y_gravity,
+            "xGravity": x_gravity
+        },
+        "mox": {
+            "width": pers_width,
+            "height": pers_height,
+            "actions": [
+                {
+                    "xImpulse": 5,
+                    "yImpulse": 0,
+                    "duration": 3,
+                    "delay": 0,
+                    "sprites": (
+                        {
+                            "path": "sprites/MoxRight_1.png",
+                            "duration": 1
+                        },
+                        {
+                            "path": "sprites/MoxRight_2.png",
+                            "duration": 1
+                        }
+                    )
+                },
+                {
+                    "xImpulse": -5,
+                    "yImpulse": 0,
+                    "duration": 3,
+                    "delay": 0,
+                    "sprites": (
+                        {
+                            "path": "sprites/MoxLeft_1.png",
+                            "duration": 1
+                        },
+                        {
+                            "path": "sprites/MoxLeft_2.png",
+                            "duration": 1
+                        }
+                    )
+                },
+                {
+                    "xImpulse": 7,
+                    "yImpulse": -17,
+                    "duration": "not_repeatable",
+                    "delay": 1,
+                    "sprites": (
+                        {
+                            "path": "sprites/MoxRJump_1.png",
+                            "duration": 1
+                        },
+                        {
+                            "path": "sprites/MoxIdle_1.png",
+                            "duration": 1
+                        }
+                    )
+                },
+                {
+                    "xImpulse": -7,
+                    "yImpulse": -17,
+                    "duration": "not_repeatable",
+                    "delay": 1,
+                    "sprites": (
+                        {
+                            "path": "sprites/MoxLJump_1.png",
+                            "duration": 1
+                        },
+                        {
+                            "path": "sprites/MoxLJump_2.png",
+                            "duration": 1
+                        }
+                    )
+                }
+            ],
+            "idle": {
+                    "duration": 5,
+                    "sprite": {
+                        "path": "sprites/MoxIdle_1.png",
+                        "duration": 5
+                    }
+                },
+            "defaultFalling": "sprites/MoxJump_2.png",
+            "rFly": {
+                "path1": "sprites/MoxRJump_2.png",
+                "path2": "sprites/MoxRJump_3.png"
+            },
+            "lFly": {
+                "path1": "sprites/MoxLJump_2.png",
+                "path2": "sprites/MoxLJump_3.png"
+            },
+        },
+        "choice": "mox"
+    }
+
+    json.dump(const, f, indent=4)
+    f.close()
+
+# читаем все из файла конфигурации
+f = open("settings.json", mode="r")
+const = json.load(f)
+general_const = const["general"]
+pers_const = const[const["choice"]]
+
+# Объявляем константы заново, основываясь на прочитанной информации из файла
+FPS = general_const["FPS"]
+y_gravity = general_const["yGravity"]
+x_gravity = general_const["xGravity"]
+js_width = pers_const["width"]
+js_height = pers_const["height"]
+# Парсим idle из
+idle = PersAction(
+    0, 0, pers_const["idle"]["duration"], 0,
+    [
+        Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height),
+        Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height)
+    ]
 )
 
-move_left = PersAction(-5, 0, 3, 0, (
-        Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
-        Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
-    )
-)
-
-jump_right = PersAction(7, -17, "not_repeatable", 1, (
-        Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    )
-)
-
-jump_left = PersAction(-7, -17, "not_repeatable", 1, (
-        Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    )
-)
-
-idle = PersAction(0, 0, 5, 0, (
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
-        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    )
-)
-# список анимаций для полета влево и вправо
-mox_r_fly = (
-    Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
-    Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
-)
-mox_l_fly = (
-    Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
-    Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
-)
 # Собираем все вместе и инициализируем нашего персонажа
-mox = Person(
-    500, 0, pers_width, pers_height,
-    (move_right, move_left, jump_right, jump_left),
-    Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height), mox_r_fly, mox_l_fly
-)
-# Зацикливаем нашу программу с фиксированным FPS
+actions = []
+js_acts = pers_const["actions"]
+
+# Парсим действия из json файла
+for action in js_acts:
+    js_sprites = []
+    for sprite in action["sprites"]:
+        js_sprites.append(Sprite(sprite["path"], sprite["duration"], js_width, js_height))
+    actions.append(
+        PersAction(action["xImpulse"], action["yImpulse"], action["duration"], action["delay"], js_sprites)
+    )
+
+defaultFalling = Sprite(pers_const["defaultFalling"], 0, js_width, js_height)
+
+js_l_fly = []
+for path in pers_const["lFly"].values():
+    js_l_fly.append(Sprite(path, 0, js_width, js_height))
+js_r_fly = []
+for path in pers_const["rFly"].values():
+    js_r_fly.append(Sprite(path, 0, js_width, js_height))
+
+person = Person(500, 0, js_width, js_height, actions, defaultFalling, js_r_fly, js_l_fly)
+
 if __name__ == '__main__':
     win.after(1000 // FPS, update)
     win.mainloop()
