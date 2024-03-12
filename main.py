@@ -3,6 +3,7 @@ import tkinter as tk
 import json
 import os.path
 from PIL import ImageTk, Image
+from tkinter import messagebox
 win = tk.Tk()
 
 
@@ -182,12 +183,85 @@ class PersAction:
         canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
 
 
+def user_config(e):
+    def conf_update():
+        upd_f = open("settings.json", mode="r+")
+        upd_const = json.load(upd_f)
+        upd_f.seek(0)
+
+        for upd_entry, setting in zip(entries, upd_const["general"].keys()):
+            try:
+                upd_const["general"][setting] = float(upd_entry.get())
+            except ValueError:
+                messagebox.showwarning("Ошибка!", "Введите численные значение!")
+                return
+
+        upd_f.truncate()
+        json.dump(upd_const, upd_f, indent=4)
+        upd_f.close()
+
+        ask = tk.Tk()
+        ask.title("Вы уверены?")
+
+        frm_confirm = tk.Frame(master=ask, padx=10, pady=10)
+        frm_confirm.pack()
+
+        lbl_confirm_txt = tk.Label(
+            master=frm_confirm,
+            text="Для того, что бы изменения вступили в силу, \n необходимо перезагрузить приложение. Выйти?"
+        )
+        lbl_confirm_txt.pack()
+
+        btn_confirm_yes = tk.Button(master=frm_confirm, text="Да", command=exit, padx=5)
+        btn_confirm_yes.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+        btn_confirm_no = tk.Button(master=frm_confirm, text="Нет", command=ask.destroy, padx=5)
+        btn_confirm_no.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+        ask.mainloop()
+
+    # Создаем окно ошибки
+    conf = tk.Tk()
+    conf.title("configure")
+
+    # Создаем текст, оповещающий пользователя, а так же кнопки, что бы выбрать, возвращать ли файл конфига в
+    # исходное состояние
+    frm_conf = tk.Frame(master=conf, padx=10, pady=10)
+    frm_conf.pack()
+    # Список ярлыков полей.
+    labels = [
+        "FPS:",
+        "Вертикальная гравитация:",
+        "Горизонтальная гравитация:"
+    ]
+    entries = []
+
+    # Цикл для списка ярлыков полей.
+    for idx, text in enumerate(labels):
+        # Создает ярлык с текстом из списка ярлыков.
+        label = tk.Label(master=frm_conf, text=text)
+        # Создает текстовое поле которая соответствует ярлыку.
+        entry = tk.Entry(master=frm_conf, width=5)
+        entry.insert(0, string="0")
+        # Использует менеджер геометрии grid для размещения ярлыков и
+        # текстовых полей в строку, чей индекс равен idx.
+        label.grid(row=idx, column=0, sticky="e")
+        entry.grid(row=idx, column=1)
+        entries.append(entry)
+
+    btn_update = tk.Button(master=conf, text="Обновить", command=conf_update, padx=5)
+    btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+    conf.mainloop()
+
+
 # Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
 def update():
     person.move("vertical", person.impulse_y)
     person.move("horizontal", person.impulse_x)
     person.inertia()
     x1, x2, y1, y2 = person.get_cords()
+    canvas.bind('<Button-3>', user_config)
 
     # Здесь будут происходить события с нашим персонажем, если он стоит на земле
     if y2 >= max_y:
@@ -221,7 +295,8 @@ win.wm_attributes("-transparentcolor", "gray")
 # Объявляем константы и записываем их в файл, если он еще не создан
 pers_width = 200
 pers_height = 200
-FPS = 25
+# 1000 // FPS
+FPS = 1000 // 20
 y_gravity = 1
 x_gravity = 0.1
 # Набор стандартных движений
@@ -271,8 +346,8 @@ pers_l_fly = (
 
 
 def config():
-    f = open("settings.json", mode="w")
-    const = {
+    default_f = open("settings.json", mode="w")
+    default_const = {
         "general": {
             "FPS": FPS,
             "yGravity": y_gravity,
@@ -367,26 +442,27 @@ def config():
         "choice": "mox"
     }
 
-    json.dump(const, f, indent=4)
-    f.close()
+    json.dump(default_const, default_f, indent=4)
+    default_f.close()
 
 
 if not os.path.exists("settings.json"):
-    # если вызвать config с True, то после выполнения ф-ции программа закроется
+    # Если вызвать config с True, то после выполнения ф-ции программа закроется
     config()
 try:
-    # читаем все из файла конфигурации
+    # Читаем все из файла конфигурации
     f = open("settings.json", mode="r")
     const = json.load(f)
     general_const = const["general"]
     pers_const = const[const["choice"]]
 
     # Объявляем константы заново, основываясь на прочитанной информации из файла
-    FPS = general_const["FPS"]
+    FPS = 1000 // int(general_const["FPS"])
     y_gravity = general_const["yGravity"]
     x_gravity = general_const["xGravity"]
     js_width = pers_const["width"]
     js_height = pers_const["height"]
+
     # Парсим idle из
     idle = PersAction(
         0, 0, pers_const["idle"]["duration"], 0,
@@ -418,6 +494,8 @@ try:
     for js_path in pers_const["rFly"].values():
         js_r_fly.append(Sprite(js_path, 0, js_width, js_height))
 
+    f.close()
+
     person = Person(500, 0, js_width, js_height, actions, defaultFalling, js_r_fly, js_l_fly)
 
 except json.decoder.JSONDecodeError:
@@ -427,12 +505,11 @@ except json.decoder.JSONDecodeError:
 
     # Создаем текст, оповещающий пользователя, а так же кнопки, что бы выбрать, возвращать ли файл конфига в
     # исходное состояние
-    frm_error = tk.Frame(master=err, bg="lightGray", padx=10, pady=10)
+    frm_error = tk.Frame(master=err, padx=10, pady=10)
     frm_error.pack()
 
     lbl_err_txt = tk.Label(
         master=frm_error,
-        bg="lightGray",
         text="Произошла ошибка при обработке файла конфигурации, \nвернуть файл в исходное состояние?"
     )
     lbl_err_txt.pack()

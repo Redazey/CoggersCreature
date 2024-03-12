@@ -1,6 +1,6 @@
 {
     "general": {
-        "FPS": 25,
+        "FPS": 50,
         "yGravity": 1,
         "xGravity": 0.1
     },
