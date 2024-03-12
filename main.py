@@ -98,7 +98,7 @@ class Person:
             else:
                 self.sprite_num = 0
             if self.sprite_num == 0:
-                self.cur_sprites[self.sprite_num].max_duration = abs(self.impulse_y) // y_gravity
+                self.cur_sprites[self.sprite_num].max_duration = abs(self.impulse_y) // y_gravity + 1
             else:
                 self.cur_sprites[self.sprite_num].max_duration = self.cur_sprites[self.sprite_num - 1].max_duration
             self.cur_sprites[self.sprite_num].sprite_start()
@@ -218,58 +218,59 @@ win.state('zoomed')
 win.wm_attributes("-topmost", True)
 win.wm_attributes("-transparentcolor", "gray")
 
-if not os.path.exists("settings.json"):
-    # Объявляем константы и записываем их в файл, если он еще не создан
-    pers_width = 200
-    pers_height = 200
-    FPS = 25
-    y_gravity = 1
-    x_gravity = 0.1
-    # Набор стандартных движений
-    # Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
-    # P.s. delay должен быть всегда меньше, чем общая длительность действия
-    move_right = PersAction(5, 0, 3, 0, [
-            Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
-            Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
-        ]
-    )
+# Объявляем константы и записываем их в файл, если он еще не создан
+pers_width = 200
+pers_height = 200
+FPS = 25
+y_gravity = 1
+x_gravity = 0.1
+# Набор стандартных движений
+# Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
+# P.s. delay должен быть всегда меньше, чем общая длительность действия
+move_right = PersAction(5, 0, 3, 0, [
+        Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
+        Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
+    ]
+)
 
-    move_left = PersAction(-5, 0, 3, 0, [
-            Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
-            Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
-        ]
-    )
+move_left = PersAction(-5, 0, 3, 0, [
+        Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
+        Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
+    ]
+)
 
-    jump_right = PersAction(7, -17, "not_repeatable", 1, [
-            Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
-            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-        ]
-    )
+jump_right = PersAction(7, -17, "not_repeatable", 1, [
+        Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+    ]
+)
 
-    jump_left = PersAction(-7, -17, "not_repeatable", 1, [
-            Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
-            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-        ]
-    )
+jump_left = PersAction(-7, -17, "not_repeatable", 1, [
+        Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+    ]
+)
 
-    idle = PersAction(0, 0, 5, 0, [
-            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
-            Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-        ]
-    )
+idle = PersAction(0, 0, 5, 0, [
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
+        Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
+    ]
+)
 
-    # список анимаций для полета влево и вправо
-    default_falling = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+# список анимаций для полета влево и вправо
+default_falling = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
 
-    pers_r_fly = (
-        Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
-        Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
-    )
-    pers_l_fly = (
-        Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
-        Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
-    )
+pers_r_fly = (
+    Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
+    Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
+)
+pers_l_fly = (
+    Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
+    Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
+)
 
+
+def config():
     f = open("settings.json", mode="w")
     const = {
         "general": {
@@ -347,12 +348,12 @@ if not os.path.exists("settings.json"):
                 }
             ],
             "idle": {
-                    "duration": 5,
-                    "sprite": {
-                        "path": "sprites/MoxIdle_1.png",
-                        "duration": 5
-                    }
-                },
+                "duration": 5,
+                "sprite": {
+                    "path": "sprites/MoxIdle_1.png",
+                    "duration": 5
+                }
+            },
             "defaultFalling": "sprites/MoxJump_2.png",
             "rFly": {
                 "path1": "sprites/MoxRJump_2.png",
@@ -369,50 +370,80 @@ if not os.path.exists("settings.json"):
     json.dump(const, f, indent=4)
     f.close()
 
-# читаем все из файла конфигурации
-f = open("settings.json", mode="r")
-const = json.load(f)
-general_const = const["general"]
-pers_const = const[const["choice"]]
 
-# Объявляем константы заново, основываясь на прочитанной информации из файла
-FPS = general_const["FPS"]
-y_gravity = general_const["yGravity"]
-x_gravity = general_const["xGravity"]
-js_width = pers_const["width"]
-js_height = pers_const["height"]
-# Парсим idle из
-idle = PersAction(
-    0, 0, pers_const["idle"]["duration"], 0,
-    [
-        Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height),
-        Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height)
-    ]
-)
+if not os.path.exists("settings.json"):
+    # если вызвать config с True, то после выполнения ф-ции программа закроется
+    config()
+try:
+    # читаем все из файла конфигурации
+    f = open("settings.json", mode="r")
+    const = json.load(f)
+    general_const = const["general"]
+    pers_const = const[const["choice"]]
 
-# Собираем все вместе и инициализируем нашего персонажа
-actions = []
-js_acts = pers_const["actions"]
-
-# Парсим действия из json файла
-for action in js_acts:
-    js_sprites = []
-    for sprite in action["sprites"]:
-        js_sprites.append(Sprite(sprite["path"], sprite["duration"], js_width, js_height))
-    actions.append(
-        PersAction(action["xImpulse"], action["yImpulse"], action["duration"], action["delay"], js_sprites)
+    # Объявляем константы заново, основываясь на прочитанной информации из файла
+    FPS = general_const["FPS"]
+    y_gravity = general_const["yGravity"]
+    x_gravity = general_const["xGravity"]
+    js_width = pers_const["width"]
+    js_height = pers_const["height"]
+    # Парсим idle из
+    idle = PersAction(
+        0, 0, pers_const["idle"]["duration"], 0,
+        [
+            Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height),
+            Sprite(pers_const["idle"]["sprite"]["path"], pers_const["idle"]["sprite"]["duration"], js_width, js_height)
+        ]
     )
 
-defaultFalling = Sprite(pers_const["defaultFalling"], 0, js_width, js_height)
+    # Собираем все вместе и инициализируем нашего персонажа
+    actions = []
+    js_acts = pers_const["actions"]
 
-js_l_fly = []
-for js_path in pers_const["lFly"].values():
-    js_l_fly.append(Sprite(js_path, 0, js_width, js_height))
-js_r_fly = []
-for js_path in pers_const["rFly"].values():
-    js_r_fly.append(Sprite(js_path, 0, js_width, js_height))
+    # Парсим действия из json файла
+    for action in js_acts:
+        js_sprites = []
+        for sprite in action["sprites"]:
+            js_sprites.append(Sprite(sprite["path"], sprite["duration"], js_width, js_height))
+        actions.append(
+            PersAction(action["xImpulse"], action["yImpulse"], action["duration"], action["delay"], js_sprites)
+        )
 
-person = Person(500, 0, js_width, js_height, actions, defaultFalling, js_r_fly, js_l_fly)
+    defaultFalling = Sprite(pers_const["defaultFalling"], 0, js_width, js_height)
+
+    js_l_fly = []
+    for js_path in pers_const["lFly"].values():
+        js_l_fly.append(Sprite(js_path, 0, js_width, js_height))
+    js_r_fly = []
+    for js_path in pers_const["rFly"].values():
+        js_r_fly.append(Sprite(js_path, 0, js_width, js_height))
+
+    person = Person(500, 0, js_width, js_height, actions, defaultFalling, js_r_fly, js_l_fly)
+
+except json.decoder.JSONDecodeError:
+    # Создаем окно ошибки
+    err = tk.Tk()
+    err.title("ERROR!")
+
+    # Создаем текст, оповещающий пользователя, а так же кнопки, что бы выбрать, возвращать ли файл конфига в
+    # исходное состояние
+    frm_error = tk.Frame(master=err, bg="lightGray", padx=10, pady=10)
+    frm_error.pack()
+
+    lbl_err_txt = tk.Label(
+        master=frm_error,
+        bg="lightGray",
+        text="Произошла ошибка при обработке файла конфигурации, \nвернуть файл в исходное состояние?"
+    )
+    lbl_err_txt.pack()
+
+    btn_yes = tk.Button(master=frm_error, text="Да", command=config, padx=5)
+    btn_yes.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+    btn_no = tk.Button(master=frm_error, text="Нет", command=exit, padx=5)
+    btn_no.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+    err.mainloop()
 
 if __name__ == '__main__':
     win.after(1000 // FPS, update)
