@@ -1,7 +1,7 @@
 {
     "general": {
-        "FPS": 50,
-        "yGravity": 1,
+        "FPS": 50.0,
+        "yGravity": 1.0,
         "xGravity": 0.1
     },
     "mox": {

@@ -184,7 +184,7 @@ class PersAction:
 
 
 def user_config(e):
-    def conf_update():
+    def conf_update(entries):
         upd_f = open("settings.json", mode="r+")
         upd_const = json.load(upd_f)
         upd_f.seek(0)
@@ -220,39 +220,77 @@ def user_config(e):
 
         ask.mainloop()
 
-    # Создаем окно ошибки
+    def general_conf():
+        frm_pers_conf.quit()
+        frm_general_conf.tkraise()
+        # Список ярлыков полей.
+        labels = {
+            "FPS:": general_const["FPS"],
+            "Вертикальная гравитация:": general_const["yGravity"],
+            "Горизонтальная гравитация:": general_const["xGravity"]
+        }
+        general_entries = []
+
+        # Цикл для списка ярлыков полей.
+        for idx, (key, text) in enumerate(labels.items()):
+            # Создает ярлык с текстом из списка ярлыков.
+            label = tk.Label(master=frm_general_conf, text=key)
+            # Создает текстовое поле которая соответствует ярлыку.
+            entry = tk.Entry(master=frm_general_conf, width=5)
+            entry.insert(0, string=text)
+            # Использует менеджер геометрии grid для размещения ярлыков и
+            # текстовых полей в строку, чей индекс равен idx.
+            label.grid(row=idx, column=0, sticky="e")
+            entry.grid(row=idx, column=1)
+            general_entries.append(entry)
+
+        btn_update = tk.Button(master=conf, text="Обновить", command=lambda: conf_update(general_entries), padx=5)
+        btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+        conf.mainloop()
+
+    def pers_conf():
+        frm_general_conf.quit()
+        frm_pers_conf.tkraise()
+        # Список ярлыков полей.
+        labels = {
+            "width": pers_const["width"],
+            "height": pers_const["height"]
+        }
+        pers_entries = []
+
+        # Цикл для списка ярлыков полей.
+        for idx, (key, text) in enumerate(labels.items()):
+            # Создает ярлык с текстом из списка ярлыков.
+            label = tk.Label(master=frm_general_conf, text=key)
+            # Создает текстовое поле которая соответствует ярлыку.
+            entry = tk.Entry(master=frm_general_conf, width=5)
+            entry.insert(0, string=text)
+            # Использует менеджер геометрии grid для размещения ярлыков и
+            # текстовых полей в строку, чей индекс равен idx.
+            label.grid(row=idx, column=0, sticky="e")
+            entry.grid(row=idx, column=1)
+            pers_entries.append(entry)
+
+        btn_update = tk.Button(master=conf, text="Обновить", command=lambda: conf_update(pers_entries), padx=5)
+        btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+
+        conf.mainloop()
+
     conf = tk.Tk()
     conf.title("configure")
 
-    # Создаем текст, оповещающий пользователя, а так же кнопки, что бы выбрать, возвращать ли файл конфига в
-    # исходное состояние
-    frm_conf = tk.Frame(master=conf, padx=10, pady=10)
-    frm_conf.pack()
-    # Список ярлыков полей.
-    labels = [
-        "FPS:",
-        "Вертикальная гравитация:",
-        "Горизонтальная гравитация:"
-    ]
-    entries = []
+    frm_general_conf = tk.Frame(master=conf, padx=10, pady=10)
+    frm_pers_conf = tk.Frame(master=conf, padx=10, pady=10)
 
-    # Цикл для списка ярлыков полей.
-    for idx, text in enumerate(labels):
-        # Создает ярлык с текстом из списка ярлыков.
-        label = tk.Label(master=frm_conf, text=text)
-        # Создает текстовое поле которая соответствует ярлыку.
-        entry = tk.Entry(master=frm_conf, width=5)
-        entry.insert(0, string="0")
-        # Использует менеджер геометрии grid для размещения ярлыков и
-        # текстовых полей в строку, чей индекс равен idx.
-        label.grid(row=idx, column=0, sticky="e")
-        entry.grid(row=idx, column=1)
-        entries.append(entry)
+    frm_switch = tk.Frame(master=conf)
+    frm_switch.pack(side=tk.LEFT, fill='x', expand=True)
 
-    btn_update = tk.Button(master=conf, text="Обновить", command=conf_update, padx=5)
-    btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
+    btn_gen_switch = tk.Button(master=frm_switch, text="Общие", command=general_conf, width=10)
+    btn_gen_switch.grid(row=1, column=1)
 
-    conf.mainloop()
+    btn_pers_switch = tk.Button(master=frm_switch, text="Персонажи", command=pers_conf, width=10)
+    btn_pers_switch.grid(row=2, column=1)
 
 
 # Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
@@ -345,7 +383,7 @@ pers_l_fly = (
 )
 
 
-def config():
+def config(state):
     default_f = open("settings.json", mode="w")
     default_const = {
         "general": {
@@ -445,10 +483,13 @@ def config():
     json.dump(default_const, default_f, indent=4)
     default_f.close()
 
+    if state:
+        exit()
+
 
 if not os.path.exists("settings.json"):
     # Если вызвать config с True, то после выполнения ф-ции программа закроется
-    config()
+    config(False)
 try:
     # Читаем все из файла конфигурации
     f = open("settings.json", mode="r")
@@ -514,7 +555,7 @@ except json.decoder.JSONDecodeError:
     )
     lbl_err_txt.pack()
 
-    btn_yes = tk.Button(master=frm_error, text="Да", command=config, padx=5)
+    btn_yes = tk.Button(master=frm_error, text="Да", command=lambda: config(True), padx=5)
     btn_yes.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
 
     btn_no = tk.Button(master=frm_error, text="Нет", command=exit, padx=5)
