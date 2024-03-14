@@ -130,11 +130,33 @@ class Person:
             self.impulse_x = 0
 
 
+class Spriter:
+    def __init__(self, sprites: tuple):
+        self.sprites = sprites
+            self.cur_spriter_sprite = self.sprites[0]
+        self.num_spriter_sprite = 0
+
+    # Меняет спрайт на следующий по списку, если тот не последний, в случае если последний,
+    # возвращается к первому
+    def spriter_update(self, pers):
+        if self.cur_spriter_sprite.current_duration > 0:
+            self.cur_spriter_sprite.sprite_update()
+        else:
+            if self.num_spriter_sprite < len(self.sprites) - 1:
+                self.num_spriter_sprite += 1
+            else:
+                self.num_spriter_sprite = 0
+
+            self.sprites[self.num_spriter_sprite].sprite_start()
+            self.cur_spriter_sprite = self.sprites[self.num_spriter_sprite]
+        canvas.itemconfigure(pers.pers, image=self.cur_spriter_sprite.sprite)
+
+
 # Класс для создания каких либо действий персонажа. P.s. Sprites это неизменяемый массив, а значит минимальное кол-во
 # спрайтов должно быть хотя бы 2, если действие использует лишь один спрайт, то дублируйте его.
 class PersAction:
     # длительность в секундах если что
-    def __init__(self, impulse_x, impulse_y, duration, delay, sprites):
+    def __init__(self, impulse_x, impulse_y, duration, delay, spriter: Spriter):
         self.impulse_x = impulse_x
         self.impulse_y = impulse_y
         self.max_delay = delay * FPS
@@ -146,29 +168,12 @@ class PersAction:
         else:
             self.max_duration = duration * FPS
         self.current_duration = 0
-
-        self.sprites = sprites
-        self.sprite_num = 0
-        self.current_sprite = sprites[self.sprite_num]
-        self.current_sprite.sprite_start()
+        self.PersAction_sprites = spriter
 
     # Обновляет длительность действия, а так же меняет текущую анимацию, на следующую
     def act_update(self, pers):
         if self.current_delay == 0:
-            # Меняет спрайт на следующий по списку, если тот не последний, в случае если последний,
-            # возвращается к первому
-            if self.current_sprite.current_duration > 0:
-                self.current_sprite.sprite_update()
-            else:
-                if self.sprite_num < len(self.sprites) - 1:
-                    self.sprite_num += 1
-                else:
-                    self.sprite_num = 0
-
-                self.sprites[self.sprite_num].sprite_start()
-                self.current_sprite = self.sprites[self.sprite_num]
-
-            canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
+            Spriter.spriter_update(self.PersAction_sprites)
             pers.impulse_x = self.impulse_x
             pers.impulse_y = self.impulse_y
         else:
@@ -180,7 +185,7 @@ class PersAction:
     def act_start(self, pers):
         self.current_delay = self.max_delay
         self.current_duration = self.max_duration
-        canvas.itemconfigure(pers.pers, image=self.current_sprite.sprite)
+        canvas.itemconfigure(pers.pers, image=self.PersAction_sprites.cur_spriter_sprite)
 
 
 def user_config(e):
@@ -340,46 +345,66 @@ x_gravity = 0.1
 # Набор стандартных движений
 # Delay добавляет задержку перед активацией движения, при этом смена первого кадра происходит
 # P.s. delay должен быть всегда меньше, чем общая длительность действия
-move_right = PersAction(5, 0, 3, 0, [
+move_right = PersAction(5, 0, 3, 0, Spriter(
+        (
         Sprite("sprites/MoxRight_1.png", 0.5, pers_width, pers_height),
         Sprite("sprites/MoxRight_2.png", 0.5, pers_width, pers_height)
-    ]
+        )
+    )
 )
 
-move_left = PersAction(-5, 0, 3, 0, [
+move_left = PersAction(-5, 0, 3, 0, Spriter(
+        (
         Sprite("sprites/MoxLeft_1.png", 0.5, pers_width, pers_height),
         Sprite("sprites/MoxLeft_2.png", 0.5, pers_width, pers_height)
-    ]
+        )
+    )
 )
 
-jump_right = PersAction(7, -17, "not_repeatable", 1, [
+jump_right = PersAction(7, -17, "not_repeatable", 1, Spriter(
+        (
         Sprite("sprites/MoxRJump_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    ]
+        )
+    )
 )
 
-jump_left = PersAction(-7, -17, "not_repeatable", 1, [
+jump_left = PersAction(-7, -17, "not_repeatable", 1, Spriter(
+        (
         Sprite("sprites/MoxLJump_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    ]
+        )
+    )
 )
 
-idle = PersAction(0, 0, 5, 0, [
+idle = PersAction(0, 0, 5, 0, Spriter(
+        (
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height),
         Sprite("sprites/MoxIdle_1.png", 1, pers_width, pers_height)
-    ]
+        )
+    )
 )
 
 # список анимаций для полета влево и вправо
-default_falling = Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+default_falling = Spriter(
+    (
+    Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height),
+    Sprite("sprites/MoxJump_2.png", 0, pers_width, pers_height)
+    )
+)
 
-pers_r_fly = (
+pers_r_fly = Spriter(
+    (
     Sprite("sprites/MoxRJump_2.png", 0, pers_width, pers_height),
     Sprite("sprites/MoxRJump_3.png", 0, pers_width, pers_height)
+    )
 )
-pers_l_fly = (
+
+pers_l_fly = Spriter(
+    (
     Sprite("sprites/MoxLJump_2.png", 0, pers_width, pers_height),
     Sprite("sprites/MoxLJump_3.png", 0, pers_width, pers_height)
+    )
 )
 
 
