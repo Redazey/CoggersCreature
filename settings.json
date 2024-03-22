@@ -1,12 +1,12 @@
 {
     "general": {
-        "FPS": 50.0,
-        "yGravity": 1.0,
+        "FPS": 33,
+        "yGravity": 1,
         "xGravity": 0.1
     },
     "mox": {
-        "width": 200,
-        "height": 200,
+        "width": 200.0,
+        "height": 200.0,
         "actions": [
             {
                 "xImpulse": 5,

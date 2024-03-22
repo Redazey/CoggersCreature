@@ -184,17 +184,19 @@ class PersAction:
 
 
 def user_config(e):
-    def conf_update(entries):
+    def conf_update(config_type):
         upd_f = open("settings.json", mode="r+")
         upd_const = json.load(upd_f)
         upd_f.seek(0)
 
-        for upd_entry, setting in zip(entries, upd_const["general"].keys()):
+        for upd_entry, setting in zip(entries, upd_const[config_type].keys()):
             try:
-                upd_const["general"][setting] = float(upd_entry.get())
+                upd_const[config_type][setting] = float(upd_entry.get())
             except ValueError:
                 messagebox.showwarning("Ошибка!", "Введите численные значение!")
                 return
+            except AttributeError:
+                continue
 
         upd_f.truncate()
         json.dump(upd_const, upd_f, indent=4)
@@ -218,18 +220,16 @@ def user_config(e):
         btn_confirm_no = tk.Button(master=frm_confirm, text="Нет", command=ask.destroy, padx=5)
         btn_confirm_no.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
 
-        ask.mainloop()
-
     def general_conf():
-        frm_pers_conf.quit()
-        frm_general_conf.tkraise()
+        frm_pers_conf.pack_forget()
+        frm_general_conf.pack(fill=tk.BOTH, expand=True)
+        entries.clear()
         # Список ярлыков полей.
         labels = {
             "FPS:": general_const["FPS"],
             "Вертикальная гравитация:": general_const["yGravity"],
             "Горизонтальная гравитация:": general_const["xGravity"]
         }
-        general_entries = []
 
         # Цикл для списка ярлыков полей.
         for idx, (key, text) in enumerate(labels.items()):
@@ -242,46 +242,49 @@ def user_config(e):
             # текстовых полей в строку, чей индекс равен idx.
             label.grid(row=idx, column=0, sticky="e")
             entry.grid(row=idx, column=1)
-            general_entries.append(entry)
+            entries.append(entry)
 
-        btn_update = tk.Button(master=conf, text="Обновить", command=lambda: conf_update(general_entries), padx=5)
-        btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
-
-        conf.mainloop()
+        entries.append("general")
 
     def pers_conf():
-        frm_general_conf.quit()
-        frm_pers_conf.tkraise()
+        frm_general_conf.pack_forget()
+        frm_pers_conf.pack(fill=tk.BOTH, expand=True)
+        entries.clear()
         # Список ярлыков полей.
         labels = {
             "width": pers_const["width"],
             "height": pers_const["height"]
         }
-        pers_entries = []
 
         # Цикл для списка ярлыков полей.
         for idx, (key, text) in enumerate(labels.items()):
             # Создает ярлык с текстом из списка ярлыков.
-            label = tk.Label(master=frm_general_conf, text=key)
+            label = tk.Label(master=frm_pers_conf, text=key)
             # Создает текстовое поле которая соответствует ярлыку.
-            entry = tk.Entry(master=frm_general_conf, width=5)
+            entry = tk.Entry(master=frm_pers_conf, width=5)
             entry.insert(0, string=text)
             # Использует менеджер геометрии grid для размещения ярлыков и
             # текстовых полей в строку, чей индекс равен idx.
             label.grid(row=idx, column=0, sticky="e")
             entry.grid(row=idx, column=1)
-            pers_entries.append(entry)
+            entries.append(entry)
 
-        btn_update = tk.Button(master=conf, text="Обновить", command=lambda: conf_update(pers_entries), padx=5)
-        btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
-
-        conf.mainloop()
+        entries.append(const["choice"])
 
     conf = tk.Tk()
     conf.title("configure")
+    entries = []
 
-    frm_general_conf = tk.Frame(master=conf, padx=10, pady=10)
-    frm_pers_conf = tk.Frame(master=conf, padx=10, pady=10)
+    frm_conf = tk.Frame(master=conf)
+    frm_conf.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    frm_general_conf = tk.Frame(master=frm_conf, padx=10, pady=10)
+    frm_general_conf.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+    frm_pers_conf = tk.Frame(master=frm_conf, padx=10, pady=10)
+    frm_pers_conf.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+    general_conf()
 
     frm_switch = tk.Frame(master=conf)
     frm_switch.pack(side=tk.LEFT, fill='x', expand=True)
@@ -291,6 +294,9 @@ def user_config(e):
 
     btn_pers_switch = tk.Button(master=frm_switch, text="Персонажи", command=pers_conf, width=10)
     btn_pers_switch.grid(row=2, column=1)
+
+    btn_update = tk.Button(master=conf, text="Обновить", command=lambda: conf_update(entries[-1]), padx=5)
+    btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
 
 
 # Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
@@ -334,7 +340,7 @@ win.wm_attributes("-transparentcolor", "gray")
 pers_width = 200
 pers_height = 200
 # 1000 // FPS
-FPS = 1000 // 20
+FPS = 1000 // 30
 y_gravity = 1
 x_gravity = 0.1
 # Набор стандартных движений
@@ -501,8 +507,8 @@ try:
     FPS = 1000 // int(general_const["FPS"])
     y_gravity = general_const["yGravity"]
     x_gravity = general_const["xGravity"]
-    js_width = pers_const["width"]
-    js_height = pers_const["height"]
+    js_width = int(pers_const["width"])
+    js_height = int(pers_const["height"])
 
     # Парсим idle из
     idle = PersAction(
