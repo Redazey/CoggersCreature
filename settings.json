@@ -1,0 +1,94 @@
+{
+    "general": {
+        "FPS": 33,
+        "yGravity": 1,
+        "xGravity": 0.1
+    },
+    "mox": {
+        "width": 200.0,
+        "height": 200.0,
+        "actions": [
+            {
+                "xImpulse": 5,
+                "yImpulse": 0,
+                "duration": 3,
+                "delay": 0,
+                "sprites": [
+                    {
+                        "path": "sprites/MoxRight_1.png",
+                        "duration": 1
+                    },
+                    {
+                        "path": "sprites/MoxRight_2.png",
+                        "duration": 1
+                    }
+                ]
+            },
+            {
+                "xImpulse": -5,
+                "yImpulse": 0,
+                "duration": 3,
+                "delay": 0,
+                "sprites": [
+                    {
+                        "path": "sprites/MoxLeft_1.png",
+                        "duration": 1
+                    },
+                    {
+                        "path": "sprites/MoxLeft_2.png",
+                        "duration": 1
+                    }
+                ]
+            },
+            {
+                "xImpulse": 7,
+                "yImpulse": -17,
+                "duration": "not_repeatable",
+                "delay": 1,
+                "sprites": [
+                    {
+                        "path": "sprites/MoxRJump_1.png",
+                        "duration": 1
+                    },
+                    {
+                        "path": "sprites/MoxIdle_1.png",
+                        "duration": 1
+                    }
+                ]
+            },
+            {
+                "xImpulse": -7,
+                "yImpulse": -17,
+                "duration": "not_repeatable",
+                "delay": 1,
+                "sprites": [
+                    {
+                        "path": "sprites/MoxLJump_1.png",
+                        "duration": 1
+                    },
+                    {
+                        "path": "sprites/MoxLJump_2.png",
+                        "duration": 1
+                    }
+                ]
+            }
+        ],
+        "idle": {
+            "duration": 5,
+            "sprite": {
+                "path": "sprites/MoxIdle_1.png",
+                "duration": 5
+            }
+        },
+        "defaultFalling": "sprites/MoxJump_2.png",
+        "rFly": {
+            "path1": "sprites/MoxRJump_2.png",
+            "path2": "sprites/MoxRJump_3.png"
+        },
+        "lFly": {
+            "path1": "sprites/MoxLJump_2.png",
+            "path2": "sprites/MoxLJump_3.png"
+        }
+    },
+    "choice": "mox"
+}
