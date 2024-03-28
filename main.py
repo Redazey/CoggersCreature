@@ -299,6 +299,12 @@ def user_config(e):
     btn_update.pack(side=tk.LEFT, fill='both', expand=True, padx=20, pady=5)
 
 
+def mouse_action(event):
+    person.x = event.x - person.width / 2
+    person.y = event.y - person.height / 2
+    person.impulse_y = 0
+
+
 # Ф-ция в которой происходят все действия; функция вызывается столько же раз в секунду, сколько у нас FPS
 def update():
     person.move("vertical", person.impulse_y)
@@ -306,9 +312,10 @@ def update():
     person.inertia()
     x1, x2, y1, y2 = person.get_cords()
     canvas.bind('<Button-3>', user_config)
+    canvas.bind('<B1-Motion>', mouse_action)
 
     # Здесь будут происходить события с нашим персонажем, если он стоит на земле
-    if y2 >= max_y:
+    if y2 == max_y:
         # Если действие для персонажа еще не задано, или оно закончилось, то задаем новое
         if person.action is None or person.action.current_duration == 0:
             # Эта проверка делает так, что бы персонаж стоял, между действиями
