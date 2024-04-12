@@ -184,6 +184,20 @@ class PersAction:
 
 
 def user_config(e):
+    def entry_generator(labels, master_frm):
+        # генерация полей
+        for idx, (key, text) in enumerate(labels.items()):
+            # Создает ярлык с текстом из списка ярлыков.
+            label = tk.Label(master=master_frm, text=key)
+            # Создает текстовое поле которая соответствует ярлыку.
+            entry = tk.Entry(master=master_frm, width=5)
+            entry.insert(0, string=text)
+            # Использует менеджер геометрии grid для размещения ярлыков и
+            # текстовых полей в строку, чей индекс равен idx.
+            label.grid(row=idx, column=0, sticky="e")
+            entry.grid(row=idx, column=1)
+            entries.append(entry)
+
     def conf_update(config_type):
         upd_f = open("settings.json", mode="r+")
         upd_const = json.load(upd_f)
@@ -224,25 +238,14 @@ def user_config(e):
         frm_pers_conf.pack_forget()
         frm_general_conf.pack(fill=tk.BOTH, expand=True)
         entries.clear()
-        # Список ярлыков полей.
-        labels = {
-            "FPS:": general_const["FPS"],
-            "Вертикальная гравитация:": general_const["yGravity"],
-            "Горизонтальная гравитация:": general_const["xGravity"]
-        }
 
-        # Цикл для списка ярлыков полей.
-        for idx, (key, text) in enumerate(labels.items()):
-            # Создает ярлык с текстом из списка ярлыков.
-            label = tk.Label(master=frm_general_conf, text=key)
-            # Создает текстовое поле которая соответствует ярлыку.
-            entry = tk.Entry(master=frm_general_conf, width=5)
-            entry.insert(0, string=text)
-            # Использует менеджер геометрии grid для размещения ярлыков и
-            # текстовых полей в строку, чей индекс равен idx.
-            label.grid(row=idx, column=0, sticky="e")
-            entry.grid(row=idx, column=1)
-            entries.append(entry)
+        entry_generator(
+            {
+                "FPS:": general_const["FPS"],
+                "Вертикальная гравитация:": general_const["yGravity"],
+                "Горизонтальная гравитация:": general_const["xGravity"]
+            }, frm_pers_conf
+        )
 
         entries.append("general")
 
@@ -250,24 +253,13 @@ def user_config(e):
         frm_general_conf.pack_forget()
         frm_pers_conf.pack(fill=tk.BOTH, expand=True)
         entries.clear()
-        # Список ярлыков полей.
-        labels = {
-            "width": pers_const["width"],
-            "height": pers_const["height"]
-        }
 
-        # Цикл для списка ярлыков полей.
-        for idx, (key, text) in enumerate(labels.items()):
-            # Создает ярлык с текстом из списка ярлыков.
-            label = tk.Label(master=frm_pers_conf, text=key)
-            # Создает текстовое поле которая соответствует ярлыку.
-            entry = tk.Entry(master=frm_pers_conf, width=5)
-            entry.insert(0, string=text)
-            # Использует менеджер геометрии grid для размещения ярлыков и
-            # текстовых полей в строку, чей индекс равен idx.
-            label.grid(row=idx, column=0, sticky="e")
-            entry.grid(row=idx, column=1)
-            entries.append(entry)
+        entry_generator(
+            {
+                "width": pers_const["width"],
+                "height": pers_const["height"]
+            }, frm_general_conf
+        )
 
         entries.append(const["choice"])
 

@@ -1,7 +1,7 @@
 {
     "general": {
-        "FPS": 33,
-        "yGravity": 1,
+        "FPS": 25.0,
+        "yGravity": 1.0,
         "xGravity": 0.1
     },
     "mox": {
@@ -74,7 +74,7 @@
             }
         ],
         "idle": {
-            "duration": 5,
+            "duration": 3,
             "sprite": {
                 "path": "sprites/MoxIdle_1.png",
                 "duration": 5
