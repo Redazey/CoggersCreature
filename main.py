@@ -1,3 +1,5 @@
+# быть добру!
+
 import random
 import tkinter as tk
 import json
